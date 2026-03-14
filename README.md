@@ -24,6 +24,14 @@ A **handheld, ₹3,000 device** that detects buried survivors by combining:
 ---
 
 ## ⚙️ How It Works
+
+## System Architecture
+This flowchart illustrates how the GroundPulse device processes soil vibrations using FFT logic:
+![Project Flowchart](./assets/system-flowchart.jpeg)
+
+## Prototype Gallery
+![Device Setup](./assets/evice-prototype.jpg)
+
 ### **1. Seismic Detection (0.1–5 Hz)**
 - Piezo LDT0‑028K senses micro‑vibrations  
 - ADXL345 provides redundant motion feedback
