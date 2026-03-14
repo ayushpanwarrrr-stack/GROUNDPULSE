@@ -46,11 +46,11 @@ A **handheld, ₹3,000 device** that detects buried survivors by combining:
 
 | Component | Cost |
 |----------|------|
-| ESP32 Dev Kit V1 | ₹350 |
-| Piezo LDT0‑028K | ₹200 |
-| MH‑Z19B CO₂ Sensor | ₹800 |
+| ESP32 Dev Kit V1 | ₹300 |
+| Piezo LDT0‑028K | ₹400 |
+| MH‑Z19B CO₂ Sensor | ₹1,500 |
 | LoRa SX1276 Ra‑02 | ₹400 |
-| OLED SSD1306 | ₹150 |
+| OLED SSD1306 | ₹200 |
 | Supporting Components | ₹300 |
 | **Total** | **~₹2,200–₹3,000** |
 
