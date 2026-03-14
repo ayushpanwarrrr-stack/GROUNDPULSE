@@ -17,36 +17,24 @@
  *  8. Monitors battery level from solar-charged 18650 cell
  *  9. Auto-resets via Watchdog if system hangs in field
  *
- * PIN CONNECTIONS (as per circuit diagram):
+ * PIN CONNECTIONS (as per circuit diagram attached):
  * ─────────────────────────────────────────
- *  Piezo + LM358 OUT   → GPIO34   (ADC - analog read)
- *  ADXL345 SDA         → GPIO21   (I2C)
- *  ADXL345 SCL         → GPIO22   (I2C)
- *  MH-Z19B TX          → GPIO16   (UART2 RX)
- *  MH-Z19B RX          → GPIO17   (UART2 TX)
- *  LoRa SCK            → GPIO18   (SPI)
- *  LoRa MISO           → GPIO19   (SPI)
- *  LoRa MOSI           → GPIO23   (SPI)
- *  LoRa CS/NSS         → GPIO5    (SPI)
+ *  Piezo + LM358 OUT   → GPIO34   
+ *  ADXL345 SDA         → GPIO21   
+ *  ADXL345 SCL         → GPIO22   
+ *  MH-Z19B TX          → GPIO16   
+ *  MH-Z19B RX          → GPIO17   
+ *  LoRa SCK            → GPIO18   
+ *  LoRa MISO           → GPIO19   
+ *  LoRa MOSI           → GPIO23   
+ *  LoRa CS/NSS         → GPIO5    
  *  LoRa RST            → GPIO14
  *  LoRa DIO0           → GPIO2
- *  OLED SDA            → GPIO21   (shared I2C with ADXL345)
- *  OLED SCL            → GPIO22   (shared I2C with ADXL345)
- *  Battery Voltage     → GPIO35   (ADC via voltage divider)
- *                         [Use 100kΩ + 100kΩ divider from BAT+ to GND]
+ *  OLED SDA            → GPIO21   
+ *  OLED SCL            → GPIO22   
+ *  Battery Voltage     → GPIO35   
  *  Alert LED           → GPIO4
  *  Buzzer              → GPIO13
- *
- * LIBRARIES — install via Arduino Library Manager:
- * ─────────────────────────────────────────────────
- *  1. arduinoFFT         by Enrique Condes
- *  2. LoRa               by Sandeep Mistry
- *  3. Adafruit ADXL345   by Adafruit
- *  4. Adafruit GFX       by Adafruit
- *  5. Adafruit SSD1306   by Adafruit
- *  6. Adafruit Unified Sensor by Adafruit
- *  7. MHZ19              by Jonathan Dempsey
- * ══════════════════════════════════════════════════════════════
  */
 
 #include <Arduino.h>
