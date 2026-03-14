@@ -30,7 +30,7 @@ This flowchart illustrates how the GroundPulse device processes soil vibrations 
 ![Project Flowchart](./assets/system-flowchart.jpeg)
 
 ## Prototype Gallery
-![Device Setup](./assets/evice-prototype.jpg)
+![Device Setup](./assets/device-prototype-1.jpg)
 
 ### **1. Seismic Detection (0.1–5 Hz)**
 - Piezo LDT0‑028K senses micro‑vibrations  
