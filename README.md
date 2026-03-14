@@ -1,41 +1,59 @@
 # 🚨 Ground Pulse v1.0
-### A low-cost, ground-based life detection 
-### system for disaster rescue
+A low-cost, ground‑penetrating life detection system for disaster rescue  
+**Cost: ~₹3,000 | Detection Time: <10 seconds | Open Source**
 
-## The Problem
-4,700+ deaths annually in South Asian landslides.
-Detection equipment costs ₹7-10 Lakh — 
-inaccessible to 80% of disaster-hit regions.
+---
 
-## Our Solution
-A ₹3,000 handheld device that detects buried 
-survivors using seismic + CO₂ dual-sensor fusion.
+## 🧭 Problem
+South Asia faces **4,700+ landslide deaths every year**, yet professional life‑detection equipment costs **₹7–10 Lakh**, requires wired geophones, and is **inaccessible to 80% of disaster‑hit regions**.  
+Rural first responders arrive **blind**, relying only on manual digging.
 
-## How It Works
-- Piezo + ADXL345 detect ground vibrations (0.1-5 Hz)
-- MH-Z19B confirms CO₂ from human breathing
-- ESP32 runs FFT analysis on Core 0
-- LoRa SX1276 transmits wirelessly on Core 1
-- Results in <10 seconds
+Ground Pulse aims to solve this technological gap.
 
-## Components
-| Part | Cost |
-|------|------|
+---
+
+## ✅ Our Solution
+A **handheld, ₹3,000 device** that detects buried survivors by combining:
+
+- **Seismic sensing** (heartbeats & breathing vibrations)
+- **CO₂ metabolic detection**
+- **Real‑time FFT analysis on ESP32**
+- **Wireless LoRa transmission**
+- **Solar‑powered field deployment**
+
+---
+
+## ⚙️ How It Works
+### **1. Seismic Detection (0.1–5 Hz)**
+- Piezo LDT0‑028K senses micro‑vibrations  
+- ADXL345 provides redundant motion feedback
+
+### **2. CO₂ Confirmation**
+- MH‑Z19B detects exhaled CO₂ (>27 ppm threshold)
+
+### **3. Dual‑Core ESP32 Processing**
+- **Core 0:** FFT processing (filters 0.1–5 Hz biological band)  
+- **Core 1:** LoRa SX1276 wireless transmission
+
+### **4. Output**
+- Confidence score (0–100%) on OLED SSD1306  
+- Wireless data stream to laptop receiver  
+- Detection within **10 seconds**
+
+---
+
+## 🧩 Components & Cost Breakdown
+
+| Component | Cost |
+|----------|------|
 | ESP32 Dev Kit V1 | ₹350 |
-| Piezo LDT0-028K | ₹200 |
-| MH-Z19B CO₂ Sensor | ₹800 |
-| LoRa SX1276 Ra-02 | ₹400 |
+| Piezo LDT0‑028K | ₹200 |
+| MH‑Z19B CO₂ Sensor | ₹800 |
+| LoRa SX1276 Ra‑02 | ₹400 |
 | OLED SSD1306 | ₹150 |
-| Other components | ₹300 |
-| **Total** | **~₹2,200** |
+| Supporting Components | ₹300 |
+| **Total** | **~₹2,200–₹3,000** |
 
-## Team
-Maverics.exe — Graphic Era Hill University
-- Aditya Nautiyal (Lead)
-- Aman Payal
-- Ayush Panwar  
-- Aditya Shah
+---
 
-## SDG Alignment
-- SDG 3: Good Health & Well-being
-- SDG 11: Sustainable Cities & Communities
+## 📂 Repository Contents
