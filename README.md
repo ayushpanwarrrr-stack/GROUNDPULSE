@@ -30,7 +30,7 @@ This flowchart illustrates how the GroundPulse device processes soil vibrations 
 ![Project Flowchart](./assets/system-flowchart.jpeg)
 
 ## Prototype Gallery
-![Device Setup](./assets/device-prototype-1.jpeg)
+![Device Setup](./device_Circuit_Diagram.jpeg)
 ![Prototype 2](./assets/prototype2.jpeg)
 ![Cross Section](./assets/cross-section-dig.jpeg)
 
