@@ -207,7 +207,7 @@ void setup() {
   Serial.println("[OK]    MH-Z19B initialised. Warming up...");
 
   // Warm-up countdown (sensor needs ~60s for stable readings)
-  for (int i = 60; i > 0; i--) {
+  for (int i = 30; i > 0; i--) {
     drawWarmupScreen(i);
     Serial.printf("        CO2 warm-up: %ds\n", i);
     esp_task_wdt_reset();
@@ -275,13 +275,13 @@ void Task_SenseAndTransmit(void *pvParameters) {
   while (true) {
 
     // ── 1. Sample Piezo at fixed rate (50 Hz) ────────────────
-    unsigned long nextSample = micros();
     for (int i = 0; i < FFT_SAMPLES; i++) {
-      while (micros() < nextSample);
-      vReal[i] = (double)analogRead(PIEZO_PIN);
-      vImag[i] = 0.0;
-      nextSample += SAMPLING_PERIOD_US;
-    }
+  unsigned long t = micros();
+  vReal[i] = (double)analogRead(PIEZO_PIN);
+  vImag[i] = 0.0;
+  long remaining = (long)SAMPLING_PERIOD_US - (long)(micros() - t);
+  if (remaining > 0) delayMicroseconds(remaining);
+  }
 
     // ── 2. Remove DC offset ──────────────────────────────────
     double dcSum = 0;
@@ -368,9 +368,12 @@ void Task_SenseAndTransmit(void *pvParameters) {
     pkt += String(g_batteryPercent)       + ",";
     pkt += String(packetCount++);
 
-    LoRa.beginPacket();
+    if (!LoRa.beginPacket()) {
+    Serial.println("[LORA] Busy — skipping packet");
+    } else {
     LoRa.print(pkt);
-    LoRa.endPacket(true);   // async = non-blocking
+    LoRa.endPacket(true);
+    }
     Serial.printf("[LORA]  Sent → %s\n\n", pkt.c_str());
 
     vTaskDelay(pdMS_TO_TICKS(200));
@@ -489,7 +492,7 @@ void drawMainScreen(int score, float freq, int co2, float bvolt, int bpct, bool 
 
   // Sensor readings
   display.setCursor(0, 41);
-  display.printf("Hz: %.2f  CO2:+%dppm", freq, co2 - baselineCO2);
+  display.printf("Hz: %.2f CO2:+%dppm", freq, co2 - CO2_BASELINE_PPM);
 
   display.setCursor(0, 51);
   display.printf("Bat: %.2fV  %d%%", bvolt, bpct);
