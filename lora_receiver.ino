@@ -356,14 +356,4 @@ void beepAlert(int times) {
 
 ---
 
-## How to add it to your repo
 
-Just click **Add file → Create new file** on GitHub, name it `lora_receiver.ino`, paste the code, and commit with message like *"Add Hunter/receiver sketch for LoRa RX unit"*.
-
-## What this does during your demo
-
-When you run the full system at the hackathon, the flow becomes:
-```
-Scout (main ESP32)          Hunter (this sketch)        Laptop
-groundpulse_main.ino  →→→  lora_receiver.ino  →→→  dashboard.py
-[detects signal]        [receives wirelessly]     [plots live graph]
