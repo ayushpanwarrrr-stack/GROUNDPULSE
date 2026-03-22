@@ -78,6 +78,8 @@ float last_accel  = 0.0;
 bool  last_human  = false;
 int   last_bat    = 100;
 int   last_pkt    = 0;
+int   last_class = 0;
+String class_labels[] = {"NONE", "HUMAN", "ANIMAL"};
 int   last_rssi   = 0;
 int   packets_received = 0;
 
@@ -198,6 +200,7 @@ void parsePacket(String pkt, int rssi) {
   last_human  = ((int)parsed_nums[4] == 1);
   last_bat    = (int)parsed_nums[5];
   last_pkt    = (int)parsed_nums[6];
+  last_class = (int)parsed_nums[7];  // new classification field
   last_rssi   = rssi;
 
   // ── Output DASHBOARD CSV line for dashboard.py ───────────
@@ -206,11 +209,12 @@ void parsePacket(String pkt, int rssi) {
 
   // ── Extra human-readable debug line ──────────────────────
   Serial.printf(
-    "[DATA] Score:%d%% Freq:%.2fHz CO2:+%dppm Accel:%.3f Human:%s Bat:%d%% RSSI:%ddBm Pkt#%d\n",
-    last_score, last_freq, last_co2, last_accel,
-    last_human ? "YES" : "no",
-    last_bat, rssi, last_pkt
-  );
+  "[DATA] Score:%d%% Freq:%.2fHz CO2:+%dppm Class:%s Human:%s Bat:%d%% RSSI:%ddBm Pkt#%d\n",
+  last_score, last_freq, last_co2,
+  class_labels[last_class].c_str(),
+  last_human ? "YES" : "no",
+  last_bat, rssi, last_pkt
+);
 
   if (last_human) {
     Serial.println("  *** HUMAN SIGNATURE CONFIRMED AT HUNTER ***");
