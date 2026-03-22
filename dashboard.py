@@ -69,11 +69,12 @@ def parse_line(line):
             latest["human"]  = parts[5] == "1"
             latest["bat"]    = int(parts[6])
             latest["pkt"]    = int(parts[7])
+            latest["class"]  = int(parts[8]) if len(parts) > 8 else 0  # ADD THIS
             return True
         except:
             return False
     return False
-
+CLASS_LABELS = {0: "No life", 1: "HUMAN", 2: "Animal"}
 # ─────────────────────────────────────────────
 # Matplotlib figure setup
 # ─────────────────────────────────────────────
@@ -140,15 +141,20 @@ def update(frame):
     line_freq.set_data(xs, list(freqs))
     line_co2.set_data(xs, list(co2_deltas))
 
-    # Status bar
-    if latest["human"]:
-        status_text.set_text(f'⚠ HUMAN DETECTED — Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  CO₂ +{latest["co2"]} ppm  |  Bat: {latest["bat"]}%')
-        status_text.set_color('#ff4444')
-        fig.patch.set_facecolor('#1a0000')
-    else:
-        status_text.set_text(f'Scanning...  Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  CO₂ +{latest["co2"]} ppm  |  Bat: {latest["bat"]}%  |  Pkt #{latest["pkt"]}')
-        status_text.set_color('#aaaaaa')
-        fig.patch.set_facecolor('#0d0d0d')
+    # Status barcls_label = CLASS_LABELS.get(latest.get("class", 0), "No life")  # get class label
+
+if latest["human"]:
+    status_text.set_text(f'HUMAN DETECTED — Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  CO2 +{latest["co2"]} ppm  |  Class: {cls_label}  |  Bat: {latest["bat"]}%')
+    status_text.set_color('#ff4444')
+    fig.patch.set_facecolor('#1a0000')
+elif latest.get("class", 0) == 2:   # animal detected
+    status_text.set_text(f'ANIMAL DETECTED — Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  CO2 +{latest["co2"]} ppm  |  Class: {cls_label}  |  Bat: {latest["bat"]}%')
+    status_text.set_color('#ffaa00')
+    fig.patch.set_facecolor('#1a1200')
+else:
+    status_text.set_text(f'Scanning...  Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  Class: {cls_label}  |  Bat: {latest["bat"]}%  |  Pkt #{latest["pkt"]}')
+    status_text.set_color('#aaaaaa')
+    fig.patch.set_facecolor('#0d0d0d')
 
     return line_score, line_freq, line_co2, status_text
 
