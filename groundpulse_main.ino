@@ -379,13 +379,14 @@ portEXIT_CRITICAL(&dataMux);
     // ── 11. LoRa wireless transmission ────────────────────────
     // Format: GP,<score>,<freq>,<co2delta>,<accel>,<human>,<bat%>,<pktn>
     String pkt = "GP,";
-    pkt += String(score)                  + ",";
-    pkt += String(freq,           2)      + ",";
-    pkt += String(co2 - baselineCO2)      + ",";
-    pkt += String(accelMag,       3)      + ",";
-    pkt += String(score >= ALERT_THRESHOLD ? 1 : 0) + ",";
-    pkt += String(g_batteryPercent)       + ",";
-    pkt += String(packetCount++);
+pkt += String(score) + ",";
+pkt += String(freq, 2) + ",";
+pkt += String(co2 - baselineCO2) + ",";
+pkt += String(accelMag, 3) + ",";
+pkt += String(score >= ALERT_THRESHOLD ? 1 : 0) + ",";
+pkt += String(g_batteryPercent) + ",";
+pkt += String(packetCount++) + ",";
+pkt += String(lifeClass);  // 0=None, 1=Human, 2=Animal
 
     if (!LoRa.beginPacket()) {
     Serial.println("[LORA] Busy — skipping packet");
@@ -516,12 +517,14 @@ void drawMainScreen(int score, float freq, int co2, float bvolt, int bpct, bool 
   display.setCursor(0, 51);
   display.printf("Bat: %.2fV  %d%%", bvolt, bpct);
 
-  // Status
-  display.setCursor(0, 57);
-  if      (score >= 80) display.print(">>> STRONG SIGNAL <<<");
-  else if (score >= 60) display.print(">>> POSSIBLE HUMAN");
-  else if (score >= 30) display.print("    Weak signal...");
-  else                  display.print("    Scanning...");
+  // Statusdisplay.setCursor(0, 51);
+display.printf("Class: %s", classifyLabel(g_lifeClass).c_str());
+
+display.setCursor(0, 57);
+if (g_lifeClass == 1 && score >= 60) display.print(">>> HUMAN DETECTED");
+else if (g_lifeClass == 2)           display.print(">>> ANIMAL / CATTLE");
+else if (score >= 30)                display.print("    Weak signal...");
+else                                 display.print("    Scanning...");
 
   display.display();
 }
@@ -546,10 +549,12 @@ void drawAlertScreen(int score, float freq, int co2, int bpct) {
   display.setCursor(4, 6);
   display.println("!! HUMAN !!");
   display.println("  DETECTED");
-
+  
   display.setTextSize(1);
-  display.setCursor(0, 42);
-  display.printf("Score:%d%%  Hz:%.2f", score, freq);
+  display.setCursor(0, 38);
+  display.print("CLASS: HUMAN");
+  display.setCursor(0, 48);
+  display.printf("Score:%d%% Hz:%.2f", score, freq);
 
   display.setCursor(0, 53);
   display.printf("CO2:+%dppm  Bat:%d%%", co2 - baselineCO2, bpct);
