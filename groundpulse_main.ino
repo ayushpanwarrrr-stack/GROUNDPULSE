@@ -90,14 +90,30 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // ──────────────────────────────────────────────────────────────
 //  BIOLOGICAL DETECTION THRESHOLDS
 // ──────────────────────────────────────────────────────────────
-#define BREATH_MIN_HZ       0.10        // Human breathing low
-#define BREATH_MAX_HZ       0.50        // Human breathing high
-#define HEART_MIN_HZ        0.80        // Human heartbeat low
-#define HEART_MAX_HZ        3.00        // Human heartbeat high
-#define CO2_BASELINE_PPM    400         // Outdoor ambient CO2
-#define CO2_HUMAN_RISE      27          // ppm rise indicating human presence
-#define PROMINENCE_MIN      2.5         // Minimum signal-to-noise ratio
-#define ALERT_THRESHOLD     60          // Confidence % to trigger alert
+// ── ORIGINAL THRESHOLDS ───────────────────────────────────────
+
+#define BREATH_MIN_HZ       0.10   // Slowest human breathing = 6 breaths/min = 0.10 Hz
+#define BREATH_MAX_HZ       0.50   // Fastest human breathing = 30 breaths/min = 0.50 Hz
+#define HEART_MIN_HZ        0.80   // Slowest human heartbeat = 48 BPM = 0.80 Hz
+#define HEART_MAX_HZ        3.00   // Fastest human heartbeat = 180 BPM = 3.00 Hz
+#define CO2_BASELINE_PPM    400    // Normal outdoor CO2 level in clean air (ppm)
+#define CO2_HUMAN_RISE      27     // Minimum CO2 rise above baseline to confirm human breath
+#define PROMINENCE_MIN      2.5    // FFT peak must be 2.5x stronger than background noise floor
+#define ALERT_THRESHOLD     60     // Confidence score % at which HUMAN DETECTED alert fires
+
+// ── AI CLASSIFIER THRESHOLDS ─────────────────────────────────
+
+#define HUMAN_HEART_MIN    0.80    // Same as HEART_MIN_HZ — kept separate for classifier clarity
+#define HUMAN_HEART_MAX    3.00    // Same as HEART_MAX_HZ — kept separate for classifier clarity
+#define HUMAN_BREATH_MIN   0.10    // Same as BREATH_MIN_HZ — kept separate for classifier clarity
+#define HUMAN_BREATH_MAX   0.50    // Same as BREATH_MAX_HZ — kept separate for classifier clarity
+#define HUMAN_CO2_MIN      27      // CO2 rise must exceed 27 ppm to classify as human
+
+#define ANIMAL_HEART_MIN   1.50    // Animals (dogs/cattle) have faster hearts — starts at 1.50 Hz
+#define ANIMAL_HEART_MAX   4.50    // Animal heartbeat upper limit — higher than human max of 3.00 Hz
+#define ANIMAL_BREATH_MIN  0.30    // Animal breathing lower bound — faster than human minimum
+#define ANIMAL_BREATH_MAX  0.80    // Animal breathing upper bound — faster than human maximum
+#define ANIMAL_CO2_MAX     15      // Animals produce less detectable CO2 through soil — stays below 15 ppm
 
 // ──────────────────────────────────────────────────────────────
 //  BATTERY SETTINGS
@@ -131,6 +147,7 @@ volatile int    g_co2             = 400;
 volatile float  g_accel           = 0.0;
 volatile int    g_score           = 0;
 volatile bool   g_humanDetected   = false;
+volatile int g_lifeClass = 0;      // 0 = No life, 1 = Human, 2 = Animal
 volatile int    g_batteryPercent  = 100;
 volatile float  g_batteryVoltage  = 4.2;
 
@@ -336,19 +353,21 @@ void Task_SenseAndTransmit(void *pvParameters) {
       lastBatRead = millis();
     }
 
-    // ── 8. Calculate confidence score ─────────────────────────
-    int score = calculateConfidence(freq, pr, co2 - baselineCO2, accelMag);
+    // ── 8. Calculate confidence score + classify life type ────
+int score   = calculateConfidence(freq, pr, co2 - baselineCO2, accelMag);
+int lifeClass = classifyLifeType(freq, pr, co2 - baselineCO2);
 
-    // ── 9. Update shared state ────────────────────────────────
-    portENTER_CRITICAL(&dataMux);
-    g_frequency     = freq;
-    g_prominence    = pr;
-    g_co2           = co2;
-    g_accel         = accelMag;
-    g_score         = score;
-    g_humanDetected = (score >= ALERT_THRESHOLD);
-    portEXIT_CRITICAL(&dataMux);
-
+// ── 9. Update shared state ────────────────────────────────
+portENTER_CRITICAL(&dataMux);
+g_frequency = freq;
+g_prominence = pr;
+g_co2 = co2;
+g_accel = accelMag;
+g_score = score;
+g_lifeClass = lifeClass;
+g_humanDetected = (score >= ALERT_THRESHOLD && lifeClass == 1);
+portEXIT_CRITICAL(&dataMux);
+    
     // ── 10. Serial debug ──────────────────────────────────────
     Serial.printf("[SENSE] Freq:%.2fHz  PR:%.1f  CO2:%d(+%d)  Accel:%.3f  Score:%d%%  Bat:%d%%\n",
       freq, pr, co2, co2 - baselineCO2, accelMag, score, g_batteryPercent);
