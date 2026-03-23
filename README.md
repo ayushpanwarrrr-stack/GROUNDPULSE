@@ -256,8 +256,8 @@ Then pass the port manually inside `dashboard.py`.
 
 ## 👥 Team — Maverics.exe
 
-| Name | Role |
-|---|---|
+| Name |
+|---|
 | Aditya Nautiyal | 
 | Aman Payal | 
 | Ayush Panwar | 
