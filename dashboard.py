@@ -50,11 +50,20 @@ co2_deltas = deque([0] * MAX_POINTS, maxlen=MAX_POINTS)
 timestamps = deque([0] * MAX_POINTS, maxlen=MAX_POINTS)
 start_time = time.time()
 
-latest = {"score": 0, "freq": 0.0, "co2": 0, "accel": 0.0, "human": False, "bat": 100, "pkt": 0}
+latest = {
+    "ai_conf": 0,
+    "freq": 0.0,
+    "co2": 0,
+    "accel": 0.0,
+    "human": False,
+    "bat": 100,
+    "pkt": 0,
+    "class": 0
+}
 
 # ─────────────────────────────────────────────
 # Parse incoming LoRa / serial line
-# Format: GP,<score>,<freq>,<co2delta>,<accel>,<human>,<bat%>,<pktn>
+# Format: GP,<AI_conf%>,<freq>,<co2delta>,<accel>,<human_flag>,<bat%>,<pktn>,<lifeClass>
 # Also parse [SENSE] debug lines as fallback
 # ─────────────────────────────────────────────
 def parse_line(line):
@@ -62,7 +71,7 @@ def parse_line(line):
     if line.startswith("GP,"):
         try:
             parts = line.split(",")
-            latest["score"]  = int(parts[1])
+            latest["ai_conf"] = int(parts[1])
             latest["freq"]   = float(parts[2])
             latest["co2"]    = int(parts[3])
             latest["accel"]  = float(parts[4])
@@ -95,7 +104,7 @@ ax_score, ax_freq, ax_co2 = axes
 line_score, = ax_score.plot([], [], color='#00ff88', linewidth=2)
 ax_score.set_ylim(0, 100)
 ax_score.set_xlim(0, MAX_POINTS)
-ax_score.set_ylabel('Confidence %')
+ax_score.set_ylabel(‘AI Confidence (%)’)
 ax_score.axhline(y=60, color='red', linestyle='--', linewidth=1, alpha=0.7)
 ax_score.text(2, 62, 'ALERT THRESHOLD', color='red', fontsize=7)
 
@@ -130,7 +139,7 @@ def update(frame):
             pass
 
     t = time.time() - start_time
-    scores.append(latest["score"])
+    scores.append(latest[“ai_conf”])
     freqs.append(latest["freq"])
     co2_deltas.append(latest["co2"])
     timestamps.append(t)
@@ -141,21 +150,35 @@ def update(frame):
     line_freq.set_data(xs, list(freqs))
     line_co2.set_data(xs, list(co2_deltas))
 
-    # Status barcls_label = CLASS_LABELS.get(latest.get("class", 0), "No life")  # get class label
+  cls_label = CLASS_LABELS.get(latest.get("class", 0), "No life")
 
-if latest["human"]:
-    status_text.set_text(f'HUMAN DETECTED — Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  CO2 +{latest["co2"]} ppm  |  Class: {cls_label}  |  Bat: {latest["bat"]}%')
-    status_text.set_color('#ff4444')
-    fig.patch.set_facecolor('#1a0000')
-elif latest.get("class", 0) == 2:   # animal detected
-    status_text.set_text(f'ANIMAL DETECTED — Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  CO2 +{latest["co2"]} ppm  |  Class: {cls_label}  |  Bat: {latest["bat"]}%')
-    status_text.set_color('#ffaa00')
-    fig.patch.set_facecolor('#1a1200')
-else:
-    status_text.set_text(f'Scanning...  Score: {latest["score"]}%  |  {latest["freq"]:.2f} Hz  |  Class: {cls_label}  |  Bat: {latest["bat"]}%  |  Pkt #{latest["pkt"]}')
-    status_text.set_color('#aaaaaa')
-    fig.patch.set_facecolor('#0d0d0d')
+    if latest["human"]:
+        status_text.set_text(
+            f'HUMAN DETECTED — AI Conf: {latest["ai_conf"]}%  |  '
+            f'{latest["freq"]:.2f} Hz  |  CO2 +{latest["co2"]} ppm  |  '
+            f'Class: {cls_label}  |  Bat: {latest["bat"]}%'
+        )
+        status_text.set_color('#ff4444')
+        fig.patch.set_facecolor('#1a0000')
 
+    elif latest.get("class", 0) == 2:
+        status_text.set_text(
+            f'ANIMAL DETECTED — AI Conf: {latest["ai_conf"]}%  |  '
+            f'{latest["freq"]:.2f} Hz  |  Class: {cls_label}  |  '
+            f'Bat: {latest["bat"]}%'
+        )
+        status_text.set_color('#ffaa00')
+        fig.patch.set_facecolor('#1a1200')
+
+    else:
+        status_text.set_text(
+            f'Scanning...  AI Conf: {latest["ai_conf"]}%  |  '
+            f'{latest["freq"]:.2f} Hz  |  Class: {cls_label}  |  '
+            f'Bat: {latest["bat"]}%  |  Pkt #{latest["pkt"]}'
+        )
+        status_text.set_color('#aaaaaa')
+        fig.patch.set_facecolor('#0d0d0d')
+        
     return line_score, line_freq, line_co2, status_text
 
 # ─────────────────────────────────────────────
