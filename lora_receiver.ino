@@ -71,7 +71,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 // ──────────────────────────────────────────────────────────────
 // STATE
 // ──────────────────────────────────────────────────────────────
-int   last_score  = 0;
+int last_ai_confidence = 0; // AI confidence (0–100%)
 float last_freq   = 0.0;
 int   last_co2    = 0;
 float last_accel  = 0.0;
@@ -166,7 +166,7 @@ void loop() {
 
 // ══════════════════════════════════════════════════════════════
 // PACKET PARSER
-// Format: GP,<score>,<freq>,<co2delta>,<accel>,<human>,<bat%>,<pktn>
+// Format: GP,<AI_conf%>,<freq>,<co2delta>,<accel>,<human_flag>,<bat%>,<pktn>,<lifeClass>
 // ══════════════════════════════════════════════════════════════
 void parsePacket(String pkt, int rssi) {
   if (!pkt.startsWith("GP,")) {
@@ -193,7 +193,7 @@ void parsePacket(String pkt, int rssi) {
   }
 
   // idx 0 = "GP" (skip), 1=score, 2=freq, 3=co2, 4=accel, 5=human, 6=bat, 7=pkt
-  last_score  = (int)parsed_nums[0];
+  last_ai_confidence  = (int)parsed_nums[0];
   last_freq   = parsed_nums[1];
   last_co2    = (int)parsed_nums[2];
   last_accel  = parsed_nums[3];
@@ -210,20 +210,20 @@ void parsePacket(String pkt, int rssi) {
   // ── Extra human-readable debug line ──────────────────────
   Serial.printf(
   "[DATA] Score:%d%% Freq:%.2fHz CO2:+%dppm Class:%s Human:%s Bat:%d%% RSSI:%ddBm Pkt#%d\n",
-  last_score, last_freq, last_co2,
+  last_ai_confidence, last_freq, last_co2,
   class_labels[last_class].c_str(),
   last_human ? "YES" : "no",
   last_bat, rssi, last_pkt
 );
 
-  if (last_human) {
+  if (last_class == 1 && last_ai_confidence >= 60) {
     Serial.println("  *** HUMAN SIGNATURE CONFIRMED AT HUNTER ***");
     beepAlert(3);
     digitalWrite(LED_PIN, HIGH);
-    drawAlertScreen(last_score, last_freq, last_co2, rssi);
+    drawAlertScreen(last_ai_confidence, last_freq, last_co2, rssi);
   } else {
     digitalWrite(LED_PIN, LOW);
-    drawScanScreen(last_score, last_freq, last_co2, last_bat, rssi);
+    drawScanScreen(last_ai_confidence, last_freq, last_co2, last_bat, rssi);
   }
 }
 
@@ -274,7 +274,7 @@ void drawScanScreen(int score, float freq, int co2, int bat, int rssi) {
   display.printf("%3d", score);
   display.setTextSize(1);
   display.setCursor(38, 18);
-  display.print("% CONF");
+  display.print("%AI CONF");
 
   // Score bar
   display.drawRect(0, 31, 128, 7, SSD1306_WHITE);
@@ -288,9 +288,12 @@ void drawScanScreen(int score, float freq, int co2, int bat, int rssi) {
   display.printf("RSSI:%ddBm Bat:%d%%", rssi, bat);
 
   display.setCursor(0, 57);
-  if (score >= 60) display.print(">>> POSSIBLE HUMAN");
-  else             display.print("    Scanning...");
-
+  if (last_class == 1 && score >= 60)
+  display.print(">>> AI: HUMAN");
+else if (last_class == 2)
+  display.print(">>> AI: ANIMAL");
+else
+  display.print("    Scanning...");
   display.display();
 }
 
@@ -339,7 +342,7 @@ void drawBootScreen() {
   display.setCursor(4, 42);
   display.println("Hunter / Receiver");
   display.setCursor(4, 54);
-  display.println("Graph-e-thon 3.0");
+  display.println("AI Solution Expo-2026");
 
   display.display();
   delay(2500);
