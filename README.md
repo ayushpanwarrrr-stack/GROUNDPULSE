@@ -156,6 +156,27 @@ Piezo + ADXL345  →  FFT Analysis  →  Feature Extraction  →  AI Classifier 
 
 ---
 
+## AI Problem Formulation
+Detecting buried survivors is a supervised classification problem under high-noise conditions.
+
+## Dataset Strategy
+- Simulated vibration signals
+- Controlled lab experiments
+- Environmental noise samples
+- CO₂ variation data
+
+## Feature Engineering
+(Explain seismic + CO₂ features)
+
+## Machine Learning Model
+(Model choice + justification)
+
+## Explainability
+Feature importance and decision transparency
+
+## Limitations
+Prototype-stage AI trained on limited data
+
 ## 🚀 Getting Started
 
 ### Hardware required
