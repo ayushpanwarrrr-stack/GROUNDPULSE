@@ -145,7 +145,7 @@ volatile float  g_frequency       = 0.0;
 volatile float  g_prominence      = 0.0;
 volatile int    g_co2             = 400;
 volatile float  g_accel           = 0.0;
-volatile int    g_score           = 0;
+volatile int    g_score           = 0; // probalistic output (0-100%) 
 volatile bool   g_humanDetected   = false;
 volatile int g_lifeClass = 0;      // 0 = No life, 1 = Human, 2 = Animal
 volatile int    g_batteryPercent  = 100;
@@ -327,6 +327,11 @@ void Task_SenseAndTransmit(void *pvParameters) {
     double avgNoise  = (noiseBins > 0) ? (noiseSum / noiseBins) : 1.0;
     double pr        = (avgNoise  > 0) ? (maxMag   / avgNoise)  : 0.0;
     double freq      = peakBin * freqRes;
+    // ── FEATURE EXTRACTION (AI INPUT FEATURES) ────────────────
+    float feature_freq     = freq;            // Dominant frequency
+    float feature_pr       = pr;               // Prominence ratio
+    float feature_co2      = co2 - baselineCO2; // CO2 delta
+    float feature_accel    = accelMag;         // Micro-vibration
 
     // ── 5. ADXL345 — micro-vibration magnitude ────────────────
     sensors_event_t event;
@@ -352,10 +357,22 @@ void Task_SenseAndTransmit(void *pvParameters) {
       Serial.printf("[BAT]  %.2fV  %d%%\n", bv, bpct);
       lastBatRead = millis();
     }
+    
+// ── AI CLASSIFICATION (Prototype Edge AI) ───────────────────
+int lifeClass = aiClassifyLife(
+  feature_freq,
+  feature_pr,
+  feature_co2,
+  feature_accel
+);
 
-    // ── 8. Calculate confidence score + classify life type ────
-int score   = calculateConfidence(freq, pr, co2 - baselineCO2, accelMag);
-int lifeClass = classifyLifeType(freq, pr, co2 - baselineCO2);
+int score = aiConfidenceScore(
+  feature_freq,
+  feature_pr,
+  feature_co2,
+  feature_accel,
+  lifeClass
+);
 
 // ── 9. Update shared state ────────────────────────────────
 portENTER_CRITICAL(&dataMux);
@@ -458,6 +475,28 @@ int calculateConfidence(float freq, float pr, int co2Delta, float accel) {
   else if (accel > 2.0)                   score -= 5;  // Likely footstep/machine
 
   return constrain(score, 0, 100);
+}
+int aiClassifyLife(float freq, float pr, float co2Delta, float accel) {
+
+  // Human signature
+  if (
+    freq >= HUMAN_HEART_MIN && freq <= HUMAN_HEART_MAX &&
+    co2Delta >= HUMAN_CO2_MIN &&
+    pr >= PROMINENCE_MIN &&
+    accel >= 0.02 && accel <= 2.0
+  ) {
+    return 1; // Human
+  }
+
+  // Animal signature
+  if (
+    freq >= ANIMAL_HEART_MIN && freq <= ANIMAL_HEART_MAX &&
+    co2Delta <= ANIMAL_CO2_MAX
+  ) {
+    return 2; // Animal
+  }
+
+  return 0; // No life / Noise
 }
 
 // ══════════════════════════════════════════════════════════════
